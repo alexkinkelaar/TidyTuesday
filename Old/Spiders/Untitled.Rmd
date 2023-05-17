@@ -1,0 +1,50 @@
+---
+title: "Tidy Tuesday 2021 Week 50"
+author: "Alex Kinkelaar"
+date: "12/7/2021"
+output: html_document
+---
+
+```{r setup, message = FALSE, error = FALSE, warning=FALSE}
+library(tidyverse)
+library(tidytuesdayR)
+library(ggradar)
+library(fmsb)
+spiders = (tidytuesdayR::tt_load('2021-12-07'))$spiders
+```
+
+Need to do some cleanup work on the `distribution` column.
+
+```{r cleanup, message = FALSE, error = FALSE, warning=FALSE}
+#Removing parenthesis and text within them
+spiders$distribution = gsub("\\s*\\([^\\)]+\\)","",as.character(spiders$distribution))
+
+#Pivoting rows - one row for each location
+spiders = spiders %>%
+  select(speciesId,distribution) %>%
+  separate_rows(distribution, sep = c(",", "or"))
+
+#Removing whitespace
+spiders$distribution = trimws(spiders$distribution, which = "left")
+```
+
+Now plotting counts of spiders in top n regions in spider plots
+
+```{r prep, message = FALSE, error = FALSE, warning=FALSE}
+spiders_prep = spiders %>%
+  group_by(distribution) %>%
+  summarise(n = n()) %>%
+  top_n(10) %>%
+  pivot_wider(names_from = distribution,
+              values_from = n)
+
+ggradar(spiders_pivoted,
+        grid.min = 0,
+        grid.max = 6000,
+        grid.mid = 3000,
+        values.radar = c(0,3000,6000))
+```
+
+
+
+

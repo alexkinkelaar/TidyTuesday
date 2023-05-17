@@ -1,0 +1,24 @@
+---
+title: "TidyTuesday Week 48"
+author: "Alex Kinkelaar"
+date: "11/23/2021"
+output:
+  html_document: default
+---
+
+```{r Setup, include = FALSE, message = FALSE, error = FALSE, warning = FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+library(tidytuesdayR)
+library(tidyverse)
+```
+
+## Data Manipulation
+```{r Data Manipulation, message = FALSE, error = FALSE, warning = FALSE}
+data = tt_load('2021-11-23')
+directors = data$directors
+episodes = data$episodes
+writers = data$writers
+imdb = data$imdb
+```
+
