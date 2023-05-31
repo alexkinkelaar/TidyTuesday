@@ -1,0 +1,77 @@
+---
+title: "Week22"
+author: "Alex Kinkelaar"
+date: "5/31/2023"
+output: html_document
+---
+
+
+```{r opening, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Tidy Tuesday Week 20
+
+### Setup: Loading Data and Necessary Packages
+
+```{r Setup}
+library(tidyverse)
+library(tidytuesdayR)
+library(usmap)
+library(alex)
+library(countrycode)
+library(ggimage)
+library(gridExtra)
+library(grid)
+data = tidytuesdayR::tt_load(2023, week = 22)
+data = data$centenarians
+```
+
+### Idea
+
+```{r Plot Code}
+plot_country = 
+  data %>%
+  group_by(place_of_death_or_residence) %>%
+  summarise(n = n()) %>%
+  filter(n > 2) %>%
+  mutate(country_iso = countrycode(place_of_death_or_residence, origin = "country.name", destination = "iso2c")) %>%
+  mutate(continent = countrycode(country_iso, origin = "iso2c", destination = "continent")) %>%
+  ggplot(aes(x = reorder(country_iso,n), y = n, fill = continent)) +
+    geom_flag(aes(y = -2, image = country_iso)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = n), position = position_dodge(width = 0.5), hjust = -0.5) +
+    theme_void() +
+    theme(legend.position = "none") +
+    theme(plot.margin = unit(c(0.25,0.25,0.25,1), "cm")) +
+    theme(plot.title = element_text(face = "bold", size = "18")) +
+    labs(
+      title = "Oldest Individuals by Country",
+      subtitle = "Number of individuals on the top 100 oldest male/female lists",
+      caption = "Countries with two: PL, NL, DE, CN \n Countries with one: GF, BL, VE, RO, PE, NO, JM, IL, IN, MQ, SV, EC, DO, CU, CL, BB, AU, AR"
+    ) +
+    coord_flip() +
+    expand_limits(y = -2)
+  
+plot_gender = 
+  data %>%
+  ggplot() +
+  geom_jitter(aes(x = gender, y = age, color = gender), size = 3, alpha = 0.5, width = 0.5) +
+  scale_y_continuous(breaks = seq(110, 125 ,1), labels = seq(110,125,1)) +
+  theme_minimal() +
+  labs(
+    x = "Gender",
+    y = "Age",
+    title = "Oldest Age by Gender",
+    subtitle = "The average woman on this list is ~3 years older than the average man",
+    caption = "@unstandarderror | github.com/alexkinkelaar"
+  ) + 
+  theme(legend.position = "none") +
+  theme(plot.title = element_text(face = "bold", size = "18"))
+
+ggsave(plot = arrangeGrob(
+        plot_country, 
+        plot_gender, 
+        top = textGrob("A Centenary of Centenarians: \n The Oldest 100 Men and Women", gp = gpar(fontsize = 22, fontface = "bold"))),
+       filename = "plot_country.png")
+```
