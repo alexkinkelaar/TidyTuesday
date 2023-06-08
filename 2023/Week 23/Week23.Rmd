@@ -1,0 +1,144 @@
+---
+title: "Untitled"
+author: "Alex Kinkelaar"
+date: "6/8/2023"
+output: html_document
+---
+
+```{r knit, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Setup
+
+```{r setup}
+library(tidyverse)
+data = read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-06-06/owid-energy.csv')
+
+tbl = data %>%
+  filter(year == 2021) %>%
+  filter(country == "United States") %>%
+  select(country,
+         biofuel_elec_per_capita,
+         coal_elec_per_capita,
+         gas_elec_per_capita,
+         hydro_elec_per_capita,
+         nuclear_elec_per_capita,
+         oil_elec_per_capita,
+         solar_elec_per_capita,
+         wind_elec_per_capita,
+         ) %>%
+  rename("Biofuel" = "biofuel_elec_per_capita",
+         "Coal" = "coal_elec_per_capita",
+         "Gas" = "gas_elec_per_capita",
+         "Hydro" = "hydro_elec_per_capita",
+         "Nuclear" = "nuclear_elec_per_capita",
+         "Oil" = "oil_elec_per_capita",
+         "Solar"="solar_elec_per_capita",
+         "Wind"="wind_elec_per_capita",
+        ) %>%
+  pivot_longer(!country, names_to = "Category", values_to = "Electricity")
+```
+
+
+
+## Plot
+
+Graph inspired by: 
+
+https://r-graph-gallery.com/web-circular-barplot-with-R-and-ggplot2.html
+
+```{r Plot}
+plot = tbl %>%
+  ggplot() +
+  geom_hline(
+    aes(yintercept = y), 
+    data.frame(y = c(0:5) * 1000),
+    color = "lightgrey"
+  ) +
+  geom_col(aes(x = reorder(Category, Electricity), 
+               y = Electricity, fill = Electricity),
+           position = "dodge2", 
+           alpha = 0.6) +
+  coord_polar() +
+  scale_y_continuous(
+    limits = c(-1000,5500),
+    expand = c(0,0),
+    breaks = c(0,1000,2000,3000,4000,5000)
+  ) +
+  annotate(
+    x = 0,
+    y = 1100, 
+    label = "1000", 
+    geom = "text", 
+    color = "gray12", 
+  ) +
+  annotate(
+    x = 0,
+    y = 2100, 
+    label = "2000", 
+    geom = "text", 
+    color = "gray12", 
+  ) +
+  annotate(
+    x = 0,
+    y =3100, 
+    label = "3000", 
+    geom = "text", 
+    color = "gray12", 
+  ) +
+  annotate(
+    x = 0, 
+    y =4100, 
+    label = "4000", 
+    geom = "text", 
+    color = "gray12", 
+  ) +
+  annotate(
+    x = 0, 
+    y =5100, 
+    label = "5000", 
+    geom = "text", 
+    color = "gray12", 
+  ) +
+  scale_fill_gradientn(
+    "Energy Production per Capita",
+     colours = c( "#6C5B7B","#C06C84","#F67280","#F8B195")
+  ) +
+  guides(
+    fill = guide_colorsteps(
+      barwidth = 15, barheight = .5, title.position = "top", title.hjust = .5
+    )
+  ) +
+  theme(
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(color = "gray12", size = 12),
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold", size = 25, hjust = 0.05),
+    plot.subtitle = element_text(size = 14, hjust = 0.05),
+    plot.caption = element_text(size = 10, hjust = .5),
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_blank(),
+    panel.grid.major.x = element_blank()
+  ) + 
+  labs(
+    title = "\nEnergy Production in the U.S.",
+    subtitle = paste(
+      "\nThis visual shows energy production per capita in the U.S.",
+      "broken down by source.",
+      sep = "\n"
+    ),
+    caption = paste(
+      "Data: OWID",
+      "@unstandarderror",
+      "github.com/alexkinkelaar",
+      sep = "\n"
+    )
+  )
+
+ggsave("plot.png", plot,width=9, height=12.6)
+```
+
+
